@@ -64,7 +64,7 @@ ER-модель д.б. представлена в виде ER-диаграмм�
 <h3>
   Диаграмма таблицы:
   
-  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-04_18-41-36.png" width="3000" height="3000"/>
+  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-04_18-41-36.png" width="2000" height="2000"/>
   
 </h3>
   
@@ -73,31 +73,31 @@ ER-модель д.б. представлена в виде ER-диаграмм�
 </h3>
 <h4>
   Факультет:
-  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-04_18-53-56.png" width="3000" height="3000"/>
+  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-04_18-53-56.png" width="2000" height="2000"/>
 </h4>
 <h4>
   Кафедра:
-  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-04_18-55-45.png" width="3000" height="3000"/>
+  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-04_18-55-45.png" width="2000" height="2000"/>
 </h4>
 <h4>
   Продукт:
-  <img src="https://github.com/nik1kit/BD_labs/blob/main/charts/tables/%D0%BF%D1%80%D0%BE%D0%B4%D1%83%D0%BA%D1%82.png" width="3000" height="3000"/>
+  <img src="https://github.com/nik1kit/BD_labs/blob/main/charts/tables/%D0%BF%D1%80%D0%BE%D0%B4%D1%83%D0%BA%D1%82.png" width="2000" height="2000"/>
 </h4>
 <h4>
   Сотрудник:
-  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-04_18-57-52.png" width="3000" height="3000"/>
+  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-04_18-57-52.png" width="2000" height="2000"/>
 </h4>
 <h4>
   Должность:
-  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-04_18-58-41.png" width="3000" height="3000"/>
+  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-04_18-58-41.png" width="2000" height="2000"/>
 </h4>
 <h4>
   Сотрудник - должность:
-  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-04_18-59-52.png" width="3000" height="3000"/>
+  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-04_18-59-52.png" width="2000" height="2000"/>
 </h4>
 <h4>
   Сотрудник - помещение:
-  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-04_19-02-32.png" width="3000" height="3000"/>
+  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-04_19-02-32.png" width="2000" height="2000"/>
 </h4>
 <h4>
   Помещение:
