@@ -1,0 +1,184 @@
+DROP TABLE IF EXISTS Employee_Room;
+DROP TABLE IF EXISTS Employee_Position;
+DROP TABLE IF EXISTS Employee;
+DROP TABLE IF EXISTS Position;
+DROP TABLE IF EXISTS Room;
+DROP TABLE IF EXISTS Department;
+DROP TABLE IF EXISTS Faculty;
+
+CREATE TABLE Faculty (
+    faculty_id INT PRIMARY KEY,
+    name NVARCHAR(100) NOT NULL,
+    phone NVARCHAR(15),
+    address NVARCHAR(300),
+    dean_id INT NOT NULL,
+    secretary_id INT NOT NULL
+);
+
+CREATE TABLE Department (
+    department_id INT PRIMARY KEY,
+    name NVARCHAR(100) NOT NULL,
+    address NVARCHAR(300),
+    phone NVARCHAR(15),
+    faculty_id INT NOT NULL,
+    head_id INT NOT NULL,
+    FOREIGN KEY (faculty_id) REFERENCES Faculty(faculty_id)
+);
+
+CREATE TABLE Room (
+    room_id INT PRIMARY KEY,
+    number INT NOT NULL,
+    phone NVARCHAR(15),
+    faculty_id INT NOT NULL,
+    FOREIGN KEY (faculty_id) REFERENCES Faculty(faculty_id)
+);
+
+CREATE TABLE Employee (
+    employee_id INT PRIMARY KEY,
+    passport NCHAR(15) UNIQUE,
+    full_name NVARCHAR(100) NOT NULL,
+    phone NVARCHAR(15),
+    department_id INT,
+    FOREIGN KEY (department_id) REFERENCES Department(department_id)
+);
+
+CREATE TABLE Position (
+    position_id INT PRIMARY KEY,
+    position_name NVARCHAR(100) NOT NULL,
+    base_salary MONEY
+);
+
+CREATE TABLE Employee_Position (
+    employee_id INT,
+    position_id INT,
+    rate NUMERIC(4,3),
+    PRIMARY KEY (employee_id, position_id),
+    FOREIGN KEY (employee_id) REFERENCES Employee(employee_id),
+    FOREIGN KEY (position_id) REFERENCES Position(position_id)
+);
+
+CREATE TABLE Employee_Room (
+    employee_id INT,
+    room_id INT,
+    PRIMARY KEY (employee_id, room_id),
+    FOREIGN KEY (employee_id) REFERENCES Employee(employee_id),
+    FOREIGN KEY (room_id) REFERENCES Room(room_id)
+);
+
+INSERT INTO Position (position_id, position_name, base_salary) VALUES
+(1, 'Декан', 90000),
+(2, 'Секретарь декана', 35000),
+(3, 'Заведующий кафедрой', 80000),
+(4, 'Лаборант', 25000),
+(5, 'Преподаватель', 35000),
+(6, 'Старший преподаватель', 40000),
+(7, 'Доцент', 50000),
+(8, 'Профессор', 70000);
+
+
+INSERT INTO Faculty (faculty_id, name, phone, address, dean_id, secretary_id) VALUES
+(1, 'Математический факультет', '4852202020', 'ул. Союзная, д. 144', 0, 0),
+(2, 'Экономический факультет', '4852404049', 'ул. Комсомольская, д. 3', 0, 0),
+(3, 'Факультет социально-политических наук', '485235353', 'ул. Советская, д. 10', 0, 0),
+(4, 'Факультет биологии и экологии', '4852121216', 'ул. Матросова, д. 9', 0, 0),
+(5, 'Физический факультет', '4852838311', 'ул. Советская, д. 14', 0, 0),
+(6, 'Юридический факультет', '4852567834', 'ул. Собинова, д. 20', 0, 0),
+(7, 'Факультет филологии и иностранных языков', '4852444555', 'ул. Кирова, д. 15', 0, 0),
+(8, 'Факультет вычислительной техники', '4852333222', 'ул. Машиностроителей, д. 7', 0, 0),
+(9, 'Исторический факультет', '4852999888', 'ул. Ушинского, д. 2', 0, 0),
+(10,'Факультет строительства', '4852666777', 'ул. Индустриальная, д. 5', 0, 0);
+
+
+INSERT INTO Department (department_id, name, address, phone, faculty_id, head_id) VALUES
+(1, 'Кафедра математического моделирования', 'ул. Союзная, д. 144, к.101', '7001000', 1, 0),
+(2, 'Кафедра дифференциальных уравнений', 'ул. Союзная, д. 144, к.102', '7002000', 1, 0),
+(3, 'Кафедра мировой экономики', 'ул. Комсомольская, д. 3, к.201', '7003000', 2, 0),
+(4, 'Кафедра политологии', 'ул. Советская, д. 10, к.301', '7004000', 3, 0),
+(5, 'Кафедра биологии растений', 'ул. Матросова, д. 9, к.401', '7005000', 4, 0),
+(6, 'Кафедра теоретической физики', 'ул. Советская, д. 14, к.501', '7006000', 5, 0),
+(7, 'Кафедра гражданского права', 'ул. Собинова, д. 20, к.601', '7007000', 6, 0),
+(8, 'Кафедра иностранных языков', 'ул. Кирова, д. 15, к.701', '7008000', 7, 0),
+(9, 'Кафедра вычислительных систем', 'ул. Машиностроителей, д. 7', '7009000', 8, 0),
+(10,'Кафедра истории России', 'ул. Ушинского, д. 2, к.901', '7010000', 9, 0),
+(11,'Кафедра строительных конструкций', 'ул. Индустриальная, д. 5', '7011000', 10, 0);
+
+
+INSERT INTO Room (room_id, number, phone, faculty_id) VALUES
+(1, 101, '7100001', 1),(2, 102, '7100002', 1),
+(3, 201, '7200001', 2),(4, 202, '7200002', 2),
+(5, 301, '7300001', 3),(6, 302, '7300002', 3),
+(7, 401, '7400001', 4),(8, 402, '7400002', 4),
+(9, 501, '7500001', 5),(10, 502, '7500002', 5),
+(11, 601, '7600001', 6),(12, 602, '7600002', 6),
+(13, 701, '7700001', 7),(14, 801, '7800001', 8),
+(15, 901, '7900001', 9),(16, 1001, '7101001', 10);
+
+
+INSERT INTO Employee (employee_id, passport, full_name, phone, department_id) VALUES
+(100, '7811111111', 'Нестеров Павел Николаевич', '790010000', 1),
+(101, '7811111112', 'Павлова Анна Сергеевна', '790010001', 1),
+(102, '7811111113', 'Зеткин Иван Петрович', '790010002', 3),
+(103, '7811111114', 'Фирсова Елена Сергеевна', '790010003', 3),
+(104, '7811111115', 'Полетаев Андрей Николаевич', '790010004', 4),
+(105, '7811111116', 'Соловьева Наталья Владимировна', '790010005', 5),
+(106, '7811111117', 'Богомолов Сергей Дмитриевич', '790010006', 6),
+(107, '7811111118', 'Мешкова Мария Павловна', '790010007', 7),
+(108, '7811111119', 'Фадеев Алексей Юрьевич', '790010008', 8),
+(109, '7811111120', 'Аристов Константин Иванович', '790010009', 9),
+(110, '7822222221', 'Петров Николай Алексеевич', '790020001', 1),
+(111, '7822222222', 'Сидоров Валентин Юрьевич', '790020002', 2),
+(112, '7822222223', 'Громова Ирина Владимировна', '790020003', 3),
+(113, '7822222224', 'Кириллов Павел Николаевич', '790020004', 4),
+(114, '7822222225', 'Шестакова Татьяна Викторовна', '790020005', 5),
+(115, '7844444441', 'Орлова Наталья Викторовна', '790040001', 8),
+(116, '7844444442', 'Гордеев Максим Алексеевич', '790040002', 9),
+(117, '7844444443', 'Титова Елизавета Романовна', '790040003', 10),
+(118, '7844444444', 'Беляев Дмитрий Андреевич', '790040004', 11),
+(119, '7844444445', 'Литвинова Анастасия Павловна', '790040005', 7),
+(120, '7844444446', 'Куликов Роман Владимирович', '790040006', 8);
+
+
+INSERT INTO Employee_Position VALUES
+(100, 1, 1.0),(100, 6, 0.5),
+(101, 2, 1.0),
+(102, 1, 1.0),(103, 2, 1.0),
+(104, 1, 1.0),(105, 2, 1.0),
+(106, 1, 1.0),(107, 2, 1.0),
+(108, 1, 1.0),(109, 2, 1.0),
+(110, 3, 1.0),(111, 3, 1.0),
+(112, 3, 1.0),(113, 3, 1.0),(114, 3, 1.0),
+(115, 1, 1.0),(116, 2, 1.0),
+(117, 1, 1.0),(118, 2, 1.0),
+(119, 1, 1.0),(120, 2, 1.0);
+
+
+INSERT INTO Employee_Room VALUES
+(100, 1),(101, 1),(102, 3),(103, 3),(104, 5),(105, 6),
+(106, 7),(107, 8),(108, 9),(109, 11),(110, 1),(111, 2),
+(112, 3),(113, 4),(114, 5),(115, 14),(116, 15),(117, 16),
+(118, 16),(119, 13),(120, 14);
+
+
+UPDATE Faculty SET dean_id = 100, secretary_id = 101 WHERE faculty_id = 1;
+UPDATE Faculty SET dean_id = 102, secretary_id = 103 WHERE faculty_id = 2;
+UPDATE Faculty SET dean_id = 104, secretary_id = 105 WHERE faculty_id = 3;
+UPDATE Faculty SET dean_id = 106, secretary_id = 107 WHERE faculty_id = 4;
+UPDATE Faculty SET dean_id = 108, secretary_id = 109 WHERE faculty_id = 5;
+UPDATE Faculty SET dean_id = 110, secretary_id = 111 WHERE faculty_id = 6;
+UPDATE Faculty SET dean_id = 115, secretary_id = 119 WHERE faculty_id = 7;
+UPDATE Faculty SET dean_id = 116, secretary_id = 120 WHERE faculty_id = 8;
+UPDATE Faculty SET dean_id = 117, secretary_id = 118 WHERE faculty_id = 9;
+UPDATE Faculty SET dean_id = 119, secretary_id = 120 WHERE faculty_id = 10;
+
+
+UPDATE Department SET head_id = 110 WHERE department_id = 1;
+UPDATE Department SET head_id = 111 WHERE department_id = 2;
+UPDATE Department SET head_id = 112 WHERE department_id = 3;
+UPDATE Department SET head_id = 113 WHERE department_id = 4;
+UPDATE Department SET head_id = 114 WHERE department_id = 5;
+UPDATE Department SET head_id = 115 WHERE department_id = 6;
+UPDATE Department SET head_id = 116 WHERE department_id = 7;
+UPDATE Department SET head_id = 117 WHERE department_id = 8;
+UPDATE Department SET head_id = 118 WHERE department_id = 9;
+UPDATE Department SET head_id = 119 WHERE department_id = 10;
+UPDATE Department SET head_id = 120 WHERE department_id = 11;
