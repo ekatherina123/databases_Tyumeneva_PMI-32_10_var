@@ -77,7 +77,7 @@ ER-модель д.б. представлена в виде ER-диаграмм�
 </h4>
 <h4>
   Кафедра:
-  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/кафедра.png" width="2000" height="2000"/>
+  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/кафедры.png" width="2000" height="2000"/>
 </h4>
 
 <h4>
