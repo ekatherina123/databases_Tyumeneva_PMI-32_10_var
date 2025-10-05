@@ -64,7 +64,7 @@ ER-модель д.б. представлена в виде ER-диаграмм�
 <h3>
   Диаграмма таблицы:
   
-  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-04_18-41-36.png" width="2000" height="2000"/>
+  <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/таблицы/2025-10-05_08-16-51.png" width="2000" height="2000"/>
   
 </h3>
   
