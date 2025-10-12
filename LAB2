@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS Faculty;
 
 
 CREATE TABLE Faculty (
-    faculty_id INT PRIMARY KEY IDENTITY(1,1),
+    ID INT PRIMARY KEY IDENTITY(1,1),
     name NVARCHAR(100) NOT NULL,
     phone NVARCHAR(15),
     address NVARCHAR(300),
@@ -18,37 +18,37 @@ CREATE TABLE Faculty (
 
 
 CREATE TABLE Department (
-    department_id INT PRIMARY KEY IDENTITY(1,1),
+    Id INT PRIMARY KEY IDENTITY(1,1),
     name NVARCHAR(100) NOT NULL,
     address NVARCHAR(300),
     phone NVARCHAR(15),
     faculty_id INT NOT NULL,
     head_id INT NULL,
     room_id INT NULL, 
-    FOREIGN KEY (faculty_id) REFERENCES Faculty(faculty_id)
+    FOREIGN KEY (faculty_id) REFERENCES Faculty(ID)
 );
 
 
 CREATE TABLE Room (
-    room_id INT PRIMARY KEY IDENTITY(1,1),
+    id INT PRIMARY KEY IDENTITY(1,1),
     number INT NOT NULL,
     phone NVARCHAR(15),
     faculty_id INT NOT NULL,
-    FOREIGN KEY (faculty_id) REFERENCES Faculty(faculty_id)
+    FOREIGN KEY (faculty_id) REFERENCES Faculty(ID)
 );
 
 
 CREATE TABLE Employee (
-    employee_id INT PRIMARY KEY IDENTITY(1,1),
+    id INT PRIMARY KEY IDENTITY(1,1),
     passport NCHAR(15) UNIQUE,
     full_name NVARCHAR(100) NOT NULL,
     phone NVARCHAR(15),
     department_id INT,
-    FOREIGN KEY (department_id) REFERENCES Department(department_id)
+    FOREIGN KEY (department_id) REFERENCES Department(Id)
 );
 
 CREATE TABLE Position (
-    position_id INT PRIMARY KEY IDENTITY(1,1),
+    id INT PRIMARY KEY IDENTITY(1,1),
     position_name NVARCHAR(100) NOT NULL,
     base_salary MONEY
 );
@@ -58,16 +58,16 @@ CREATE TABLE Employee_Position (
     position_id INT,
     rate NUMERIC(4,3),
     PRIMARY KEY (employee_id, position_id),
-    FOREIGN KEY (employee_id) REFERENCES Employee(employee_id),
-    FOREIGN KEY (position_id) REFERENCES Position(position_id)
+    FOREIGN KEY (employee_id) REFERENCES Employee(id),
+    FOREIGN KEY (position_id) REFERENCES Position(id)
 );
 
 CREATE TABLE Employee_Room (
     employee_id INT,
     room_id INT,
     PRIMARY KEY (employee_id, room_id),
-    FOREIGN KEY (employee_id) REFERENCES Employee(employee_id),
-    FOREIGN KEY (room_id) REFERENCES Room(room_id)
+    FOREIGN KEY (employee_id) REFERENCES Employee(id),
+    FOREIGN KEY (room_id) REFERENCES Room(id)
 );
 
 
@@ -170,25 +170,25 @@ INSERT INTO Employee_Room VALUES
 (17, 15), (18, 16), (19, 16), (20, 13), (21, 14);
 
 
-UPDATE Faculty SET dean_id = 1, secretary_id = 2 WHERE faculty_id = 1;
-UPDATE Faculty SET dean_id = 3, secretary_id = 4 WHERE faculty_id = 2;
-UPDATE Faculty SET dean_id = 5, secretary_id = 6 WHERE faculty_id = 3;
-UPDATE Faculty SET dean_id = 7, secretary_id = 8 WHERE faculty_id = 4;
-UPDATE Faculty SET dean_id = 9, secretary_id = 10 WHERE faculty_id = 5;
-UPDATE Faculty SET dean_id = 11, secretary_id = 12 WHERE faculty_id = 6;
-UPDATE Faculty SET dean_id = 16, secretary_id = 20 WHERE faculty_id = 7;
-UPDATE Faculty SET dean_id = 17, secretary_id = 21 WHERE faculty_id = 8;
-UPDATE Faculty SET dean_id = 18, secretary_id = 19 WHERE faculty_id = 9;
-UPDATE Faculty SET dean_id = 20, secretary_id = 21 WHERE faculty_id = 10;
+UPDATE Faculty SET dean_id = 1, secretary_id = 2 WHERE ID = 1;
+UPDATE Faculty SET dean_id = 3, secretary_id = 4 WHERE ID = 2;
+UPDATE Faculty SET dean_id = 5, secretary_id = 6 WHERE ID = 3;
+UPDATE Faculty SET dean_id = 7, secretary_id = 8 WHERE ID = 4;
+UPDATE Faculty SET dean_id = 9, secretary_id = 10 WHERE ID = 5;
+UPDATE Faculty SET dean_id = 11, secretary_id = 12 WHERE ID = 6;
+UPDATE Faculty SET dean_id = 16, secretary_id = 20 WHERE ID = 7;
+UPDATE Faculty SET dean_id = 17, secretary_id = 21 WHERE ID = 8;
+UPDATE Faculty SET dean_id = 18, secretary_id = 19 WHERE ID = 9;
+UPDATE Faculty SET dean_id = 20, secretary_id = 21 WHERE ID = 10;
 
-UPDATE Department SET head_id = 11 WHERE department_id = 1;
-UPDATE Department SET head_id = 12 WHERE department_id = 2;
-UPDATE Department SET head_id = 13 WHERE department_id = 3;
-UPDATE Department SET head_id = 14 WHERE department_id = 4;
-UPDATE Department SET head_id = 15 WHERE department_id = 5;
-UPDATE Department SET head_id = 16 WHERE department_id = 6;
-UPDATE Department SET head_id = 17 WHERE department_id = 7;
-UPDATE Department SET head_id = 18 WHERE department_id = 8;
-UPDATE Department SET head_id = 19 WHERE department_id = 9;
-UPDATE Department SET head_id = 20 WHERE department_id = 10;
-UPDATE Department SET head_id = 21 WHERE department_id = 11;
+UPDATE Department SET head_id = 11 WHERE Id = 1;
+UPDATE Department SET head_id = 12 WHERE Id = 2;
+UPDATE Department SET head_id = 13 WHERE Id = 3;
+UPDATE Department SET head_id = 14 WHERE Id = 4;
+UPDATE Department SET head_id = 15 WHERE Id = 5;
+UPDATE Department SET head_id = 16 WHERE Id = 6;
+UPDATE Department SET head_id = 17 WHERE Id = 7;
+UPDATE Department SET head_id = 18 WHERE Id = 8;
+UPDATE Department SET head_id = 19 WHERE Id = 9;
+UPDATE Department SET head_id = 20 WHERE Id = 10;
+UPDATE Department SET head_id = 21 WHERE Id = 11;
