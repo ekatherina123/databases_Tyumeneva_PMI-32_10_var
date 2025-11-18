@@ -131,7 +131,7 @@ d)  Вывести список сотрудников, упорядоченны
 e)  Вывести список телефонов для всех подразделений  
 </h3>
 
-# <a name="-lab4"></a><img src="https://img.shields.io/badge/Lab4-purple" width="20" height="20"/> Лабораторная работа №4
+# <a name="-lab4"></a><img src="https://github.com/user-attachments/assets/e080adec-6af7-4bd2-b232-d43cb37024ac" width="20" height="20"/> Лабораторная работа №4
 
 <ol type="a">
 	<h3>Создать 4 различных хранимых процедуры:</h3>
