@@ -269,5 +269,111 @@ EXEC GetRoomsAboveAverage;
 
 ```
 <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/LAB4/4_1_4.png" alt="Схема 4.1.4" width="450">
+</ol>
+
+<ol type="a">
+<h3>3	пользовательских функции:</h3>
+
+a) Скалярная функция: по фамилии сотрудника выводит название его факультета
+  
+```  
+CREATE OR ALTER FUNCTION dbo.GetFacultyByEmployeeSurname
+(
+    @Surname NVARCHAR(100)
+)
+RETURNS NVARCHAR(100)
+AS
+BEGIN
+    DECLARE @FacultyName NVARCHAR(100);
+
+    SELECT TOP 1 @FacultyName = f.name
+    FROM Employee e
+    JOIN Employee_Room er ON e.id = er.employee_id
+    JOIN Room r ON er.room_id = r.id
+    JOIN Faculty f ON r.faculty_id = f.id
+    WHERE e.full_name LIKE @Surname + '%';
+
+    RETURN @FacultyName;
+END;
+GO
+
+SELECT dbo.GetFacultyByEmployeeSurname(N'Куликов') AS FacultyName;
+
+```
+<img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/LAB4/4_2_1.png" alt="Схема 4.2.1" width="450">
+
+b) Inline-функция, возвращающая список телефонов кафедр заданного факультета
+
+
+```
+CREATE OR ALTER FUNCTION dbo.GetDepartmentPhonesByFaculty
+(
+    @FacultyName NVARCHAR(100)
+)
+RETURNS TABLE
+AS
+RETURN
+(
+    SELECT d.name AS DepartmentName, d.phone AS DepartmentPhone
+    FROM Department d
+    JOIN Room r ON d.room_id = r.id
+    JOIN Faculty f ON r.faculty_id = f.id
+    WHERE f.name = @FacultyName
+);
+GO
+
+SELECT * FROM dbo.GetDepartmentPhonesByFaculty(N'Факультет информационных технологий');
+
+```
+<img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/LAB4/4_2_2.png" alt="Схема 4.2.2" width="450">
+
+c) Multi-statement-функция, выдающая количество различных должностей по кафедрам заданного факультета в виде:
+Кафедра |лаборант|ассистент|преподаватель|старший преподаватель |доцент|профессор
+
+```
+CREATE OR ALTER FUNCTION dbo.GetPositionCountsByFaculty
+(
+    @FacultyName NVARCHAR(100)
+)
+RETURNS @Result TABLE
+(
+    DepartmentName NVARCHAR(100),
+    LabAssistant INT,
+    Assistant INT,
+    Teacher INT,
+    SeniorTeacher INT,
+    Docent INT,
+    Professor INT
+)
+AS
+BEGIN
+    INSERT INTO @Result
+    SELECT 
+        d.name AS DepartmentName,
+        SUM(CASE WHEN p.position_name = 'лаборант' THEN 1 ELSE 0 END) AS LabAssistant,
+        SUM(CASE WHEN p.position_name = 'ассистент' THEN 1 ELSE 0 END) AS Assistant,
+        SUM(CASE WHEN p.position_name = 'преподаватель' THEN 1 ELSE 0 END) AS Teacher,
+        SUM(CASE WHEN p.position_name = 'старший преподаватель' THEN 1 ELSE 0 END) AS SeniorTeacher,
+        SUM(CASE WHEN p.position_name = 'доцент' THEN 1 ELSE 0 END) AS Docent,
+        SUM(CASE WHEN p.position_name = 'профессор' THEN 1 ELSE 0 END) AS Professor
+    FROM Department d
+    JOIN Room r ON d.room_id = r.id
+    JOIN Faculty f ON r.faculty_id = f.id
+    LEFT JOIN Employee_Room er ON er.room_id = r.id
+    LEFT JOIN Employee e ON er.employee_id = e.id
+    LEFT JOIN Employee_Position ep ON ep.employee_id = e.id
+    LEFT JOIN Position p ON ep.position_id = p.id
+    WHERE f.name = @FacultyName
+    GROUP BY d.name;
+
+    RETURN;
+END;
+GO
+
+SELECT * FROM dbo.GetPositionCountsByFaculty(N'Факультет информационных технологий');
+
+
+```
+<img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/LAB4/4_2_3.png" alt="Схема 4.2.3" width="450">
 
 
