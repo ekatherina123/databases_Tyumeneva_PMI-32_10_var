@@ -376,4 +376,154 @@ SELECT * FROM dbo.GetPositionCountsByFaculty(N'Факультет информа
 ```
 <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/LAB4/4_2_3.png" alt="Схема 4.2.3" width="450">
 
+</ol>
+<ol type="a">
+<h3>Создать  3 триггера:</h3>
+a) Триггер любого типа на добавление нового помещения для кафедры – если комната с этим номером закреплена за др.кафедрой или факультетом, то она для данной кафедры не добавляется, выводится соотв.сообщение
+
+
+```
+CREATE OR ALTER TRIGGER TR_Room_Insert_Check
+ON Room
+INSTEAD OF INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF EXISTS (
+        SELECT 1
+        FROM Room r
+        JOIN inserted i ON r.number = i.number
+        WHERE ISNULL(r.faculty_id, -1) <> ISNULL(i.faculty_id, -1)
+    )
+    BEGIN
+        PRINT 'Комната уже закреплена за другим факультетом. Добавление отменено.';
+        RETURN;
+    END;
+
+    INSERT INTO Room (number, phone, faculty_id)
+    SELECT number, phone, faculty_id
+    FROM inserted;
+END;
+GO
+
+
+INSERT INTO Room (number, phone, faculty_id)
+VALUES
+(101, '7999999', 3), -- не вставится
+(1005, '7900000', 8); -- вставится
+
+```
+<img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/LAB4/4_3_11.png" alt="Схема 4.3.1" width="450">
+
+b)  Последующий триггер на изменение номера комнаты для сотрудника – если новая комната принадлежит не его кафедре, то номер не меняется, выводится соотв.сообщение
+
+```
+CREATE OR ALTER TRIGGER TR_EmployeeRoom_Update
+ON Employee_Room
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE 
+        @emp INT,
+        @new_room INT,
+        @old_room INT,
+        @empDept INT,
+        @deptFaculty INT,
+        @roomFaculty INT;
+
+    DECLARE cur CURSOR FOR
+        SELECT i.employee_id, i.room_id, d.room_id
+        FROM inserted i
+        JOIN deleted d ON i.employee_id = d.employee_id;
+
+    OPEN cur;
+    FETCH NEXT FROM cur INTO @emp, @new_room, @old_room;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SELECT @empDept = department_id FROM Employee WHERE id = @emp;
+        SELECT @deptFaculty = faculty_id FROM Department WHERE Id = @empDept;
+        SELECT @roomFaculty = faculty_id FROM Room WHERE id = @new_room;
+
+        IF @deptFaculty <> @roomFaculty
+        BEGIN
+            PRINT 'Сотруднику нельзя назначить комнату, принадлежащую другому факультету. Изменение отменено.';
+
+            UPDATE Employee_Room
+            SET room_id = @old_room
+            WHERE employee_id = @emp;
+        END
+
+        FETCH NEXT FROM cur INTO @emp, @new_room, @old_room;
+    END;
+
+    CLOSE cur;
+    DEALLOCATE cur;
+END;
+GO
+UPDATE Employee_Room
+SET room_id = 2
+WHERE employee_id = 1;
+SELECT * FROM Employee_Room;
+
+```
+
+<img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/LAB4/4_3_2.png" alt="Схема 4.3.2" width="450">
+
+c) Замещающий триггер на операцию удаления комнаты из списка помещений кафедры – если там размещаются сотрудники кафедры, то комната из списка не удаляется, выводится соотв.сообщение
+
+
+```
+CREATE OR ALTER TRIGGER TR_Room_Delete
+ON Room
+INSTEAD OF DELETE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE
+        @room INT,
+        @cnt INT;
+
+    DECLARE cur_del CURSOR FOR
+        SELECT id FROM deleted;
+
+    OPEN cur_del;
+    FETCH NEXT FROM cur_del INTO @room;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SELECT @cnt = COUNT(*) 
+        FROM Employee_Room
+        WHERE room_id = @room;
+
+        IF @cnt > 0
+        BEGIN
+            PRINT 'Комната ' + CAST(@room AS NVARCHAR(10)) 
+                + ' не может быть удалена – там размещаются сотрудники.';
+        END
+        ELSE
+        BEGIN
+            DELETE FROM Room WHERE id = @room;
+        END
+
+        FETCH NEXT FROM cur_del INTO @room;
+    END;
+
+    CLOSE cur_del;
+    DEALLOCATE cur_del;
+END;
+GO
+
+DELETE FROM Room
+WHERE id IN (1,21,22); 
+
+```
+комнаты с id 21 и 22 удалились, для комнаты с id 1 выведено сообщение об ошибке
+<img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/LAB4/4_3_3.png" alt="Схема 4.3.3" width="450">
+</ol>
+
 
