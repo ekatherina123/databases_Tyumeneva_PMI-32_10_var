@@ -546,7 +546,7 @@ WHERE id IN (1,21,22);
   <p><b>Отчет предоставить в виде:</b></p>
   <ul>
     <li>Схема узлов и ребер.</li>
-<img src="pictures/notes.png" alt="Узлы и рёбра" width="650">
+<img src="pictures/notes.png.png" alt="Узлы и рёбра" width="650">
     <li>Скрипт для создания и заполнения графовых таблиц</li>
 <pre><code>
 DROP TABLE IF EXISTS Graph_Faculty;
