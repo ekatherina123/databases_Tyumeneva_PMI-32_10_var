@@ -526,4 +526,271 @@ WHERE id IN (1,21,22);
 <img src="https://github.com/ekatherina123/databases_Tyumeneva_PMI-32_10_var/blob/main/pictures/LAB4/4_3_3.png" alt="Схема 4.3.3" width="450">
 </ol>
 
+# <img src="https://github.com/user-attachments/assets/e080adec-6af7-4bd2-b232-d43cb37024ac" width="20" height="20"/> Lab6
+[Назад](#content)
+<h3 align="center">
+  <a href="#client"></a>
+</h3>
+
+<div>
+  <h4>Создание графовых таблиц и работа с ними</h4>
+  
+  <p><b>Задание 1:</b></p>
+  <ol>
+    <li>Используйте реляционную БД из лабораторной работы №2.</li>
+    <li>Продумайте и создайте графовые таблицы по реляционной БД, заполните графовые таблицы используя данные в реляционных таблицах.</li>
+    <li>ЗНапишите запросы из задания 3.2 используя паттерн MATCH.</li>
+    <li>Сравните полученные результаты  с  результатами запросов к реляционной модели.</li>
+  </ol>
+  
+  <p><b>Отчет предоставить в виде:</b></p>
+  <ul>
+    <li>Схема узлов и ребер.</li>
+<img src="pictures/схема%20узлов%20и%20рёбер.png" alt="Узлы и рёбра" width="650">
+    <li>Скрипт для создания и заполнения графовых таблиц</li>
+<pre><code>
+DROP TABLE IF EXISTS Graph_Faculty;
+DROP TABLE IF EXISTS Graph_Department;
+DROP TABLE IF EXISTS Graph_Room;
+DROP TABLE IF EXISTS Graph_Employee;
+DROP TABLE IF EXISTS Graph_Position;
+
+DROP TABLE IF EXISTS HAS_Department;
+DROP TABLE IF EXISTS HAS_ROOM;
+DROP TABLE IF EXISTS EMPLOYS;
+DROP TABLE IF EXISTS WORKS_AS;
+DROP TABLE IF EXISTS WORKS_IN ;
+DROP TABLE IF EXISTS HEADED_BY;
+DROP TABLE IF EXISTS HAS_SECRETARY;
+DROP TABLE IF EXISTS MANAGED_BY;
+GO
+
+CREATE TABLE Graph_Faculty (
+    id INT PRIMARY KEY,
+    name NVARCHAR(100),
+    phone NVARCHAR(15),
+    address NVARCHAR(300)
+) AS NODE;
+
+CREATE TABLE Graph_Department (
+    id INT PRIMARY KEY,
+    name NVARCHAR(100),
+    phone NVARCHAR(15),
+    address NVARCHAR(300)
+) AS NODE;
+
+CREATE TABLE Graph_Room (
+    id INT PRIMARY KEY,
+    number INT,
+    phone NVARCHAR(15)
+) AS NODE;
+
+CREATE TABLE Graph_Employee (
+    id INT PRIMARY KEY,
+    full_name NVARCHAR(100),
+    passport CHAR(15),
+    phone NVARCHAR(15)
+) AS NODE;
+
+CREATE TABLE Graph_Position (
+    id INT PRIMARY KEY,
+    position_name NVARCHAR(100),
+    base_salary MONEY
+) AS NODE;
+GO
+
+CREATE TABLE HAS_Department AS EDGE;
+CREATE TABLE HAS_ROOM  AS EDGE;
+CREATE TABLE EMPLOYS AS EDGE;
+CREATE TABLE WORKS_AS AS EDGE;
+CREATE TABLE WORKS_IN  AS EDGE;
+CREATE TABLE HEADED_BY AS EDGE;
+CREATE TABLE HAS_SECRETARY AS EDGE;
+CREATE TABLE MANAGED_BY AS EDGE;
+GO
+
+-- Вставляем данные в узлы
+INSERT INTO Graph_Faculty (id, name, phone, address)
+SELECT ID, name, phone, address FROM Faculty;
+
+INSERT INTO Graph_Department(id, name, phone, address)
+SELECT Id, name, phone, address FROM Department;
+
+INSERT INTO Graph_Room (id, number, phone)
+SELECT id, number, phone FROM Room;
+
+INSERT INTO Graph_Employee (id, full_name, passport, phone)
+SELECT id, full_name, passport, phone FROM Employee;
+
+INSERT INTO Graph_Position (id, position_name, base_salary)
+SELECT id, position_name, base_salary FROM Position;
+GO
+
+-- Вставляем данные в ребра
+INSERT INTO HAS_Department ($from_id, $to_id)
+SELECT f.$node_id, d.$node_id
+FROM Graph_Faculty f
+JOIN Graph_Department d ON EXISTS (
+    SELECT 1 FROM Department dept 
+    WHERE dept.Id = d.id AND dept.faculty_id = f.id
+);
+
+INSERT INTO HAS_ROOM  ($from_id, $to_id)
+SELECT d.$node_id, r.$node_id
+FROM Graph_Department d
+JOIN Graph_Room r ON EXISTS (
+    SELECT 1 FROM Department dept 
+    WHERE dept.Id = d.id AND dept.room_id = r.id
+);
+
+INSERT INTO EMPLOYS ($from_id, $to_id)
+SELECT d.$node_id, e.$node_id
+FROM Graph_Department d
+JOIN Graph_Employee e ON EXISTS (
+    SELECT 1 FROM Employee emp 
+    WHERE emp.id = e.id AND emp.department_id = d.id
+);
+
+INSERT INTO WORKS_AS ($from_id, $to_id)
+SELECT e.$node_id, p.$node_id
+FROM Employee_Position ep
+JOIN Graph_Employee e ON e.id = ep.employee_id
+JOIN Graph_Position p ON p.id = ep.position_id;
+
+INSERT INTO WORKS_IN  ($from_id, $to_id)
+SELECT e.$node_id, r.$node_id
+FROM Employee_Room er
+JOIN Graph_Employee e ON e.id = er.employee_id
+JOIN Graph_Room r ON r.id = er.room_id;
+
+INSERT INTO HEADED_BY ($from_id, $to_id)
+SELECT f.$node_id, e.$node_id
+FROM Graph_Faculty f
+JOIN Graph_Employee e ON EXISTS (
+    SELECT 1 FROM Faculty fac 
+    WHERE fac.ID = f.id AND fac.dean_id = e.id
+);
+
+INSERT INTO HAS_SECRETARY ($from_id, $to_id)
+SELECT f.$node_id, e.$node_id
+FROM Graph_Faculty f
+JOIN Graph_Employee e ON EXISTS (
+    SELECT 1 FROM Faculty fac 
+    WHERE fac.ID = f.id AND fac.secretary_id = e.id
+);
+
+INSERT INTO MANAGED_BY ($from_id, $to_id)
+SELECT d.$node_id, e.$node_id
+FROM Graph_Department d
+JOIN Graph_Employee e ON EXISTS (
+    SELECT 1 FROM Department dept 
+    WHERE dept.Id = d.id AND dept.head_id = e.id
+);
+
+</code></pre>
+    <li>Запросы из задания 3.2 к двум моделям(реляционная, графовая).</li>
+  </ul>
+<ol>
+  <li>a)Для каждого факультета вывести список кафедр с ФИО руководителя и секретаря:</li>
+<pre><code>
+SELECT 
+    f.name AS [Факультет],
+    d.name AS [Кафедра],
+    head_emp.full_name AS [Руководитель кафедры],
+    sec_emp.full_name AS [Секретарь факультета]
+FROM 
+    Graph_Faculty f,
+    HAS_Department hd,
+    Graph_Department d,
+    MANAGED_BY mb,
+    Graph_Employee head_emp,
+    HAS_SECRETARY hs,
+    Graph_Employee sec_emp
+WHERE 
+    MATCH(f-(hd)->d-(mb)->head_emp AND f-(hs)->sec_emp)
+ORDER BY 
+    f.name, d.name;
+	
+</code></pre>
+<img src="pictures/a.jpg" alt="Схема 6.1" width="500">
+  <li>b)Выдать список адресов, по которым находятся подразделения</li>
+<pre><code>
+	
+SELECT 
+    d.name,
+    d.address
+FROM 
+    Graph_Faculty f,
+    HAS_Department efd,
+    Graph_Department d
+WHERE 
+    MATCH(f-(efd)->d)
+ORDER BY 
+    d.name;
+	
+</code></pre>
+<img src="pictures/b.jpg" alt="Схема 6.2" width="600">
+  <li>c)Для каждой комнаты выдать название кафедры, телефон, кол-во сотрудников, работающих в этой комнате</li>
+<pre><code>
+SELECT 
+    r.number AS [Номер комнаты],
+    r.phone AS [Телефон комнаты],
+    (SELECT TOP 1 d.name 
+     FROM Graph_Department d, HAS_ROOM hr 
+     WHERE MATCH(d-(hr)->r)) AS [Кафедра],
+    (SELECT COUNT(DISTINCT e.id) 
+     FROM Graph_Employee e, WORKS_IN wi 
+     WHERE MATCH(e-(wi)->r)) AS [Кол-во сотрудников]
+FROM 
+    Graph_Room r
+ORDER BY 
+    r.number;
+	
+</code></pre>
+<img src="pictures/c.jpg" alt="Схема 6.3" width="600">
+  <li> d)Вывести список сотрудников, упорядоченный по: факультету, кафедре, ФИО (на выходе: название факультета, название кафедры, ФИО, должность)</li>
+<pre><code>
+SELECT 
+    f.name AS [Факультет],
+    d.name AS [Кафедра],
+    e.full_name AS [ФИО],
+    p.position_name AS [Должность]
+FROM 
+    Graph_Faculty f,
+    HAS_Department hd,
+    Graph_Department d,
+    EMPLOYS emp_edge,
+    Graph_Employee e,
+    WORKS_AS wa,
+    Graph_Position p
+WHERE 
+    MATCH(f-(hd)->d-(emp_edge)->e-(wa)->p)
+ORDER BY 
+    f.name, d.name, e.full_name;
+	
+</code></pre>
+<img src="pictures/d.jpg" alt="Схема 6.4" width="600">
+  <li> e)Вывести список телефонов для всех подразделений (факультет, кафедра, ФИО руководителя, номер телефона)</li>
+<pre><code>
+SELECT 
+    f.name AS [Факультет],
+    d.name AS [Кафедра],
+    head_emp.full_name AS [Руководитель кафедры],
+    d.phone AS [Телефон кафедры]
+FROM 
+    Graph_Faculty f,
+    HAS_Department hd,
+    Graph_Department d,
+    MANAGED_BY mb,
+    Graph_Employee head_emp
+WHERE 
+    MATCH(f-(hd)->d-(mb)->head_emp)
+ORDER BY 
+    f.name, d.name;
+	
+</code></pre>
+<img src="pictures/e.jpg" alt="Схема 6.5" width="550">
+</ol>
+</div>
+
 
