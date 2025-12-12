@@ -6,7 +6,7 @@
   <a href="#-lab2"><img alt="lab2" src="https://img.shields.io/badge/Lab2-orange"></a>
   <a href="#-lab3"><img alt="lab3" src="https://img.shields.io/badge/Lab3-yellow"></a>
   <a href="#-lab4"><img alt="lab4" src="https://img.shields.io/badge/Lab4-green"></a>
-  <a href="#-lab4"><img alt="lab4" src="https://img.shields.io/badge/Lab5-blue"></a>
+  <a href="#-lab4"><img alt="lab5" src="https://img.shields.io/badge/Lab5-blue"></a>
   <a href="#-lab6"><img alt="lab6" src="https://img.shields.io/badge/Lab6-purple"></a>
 </p>
 
