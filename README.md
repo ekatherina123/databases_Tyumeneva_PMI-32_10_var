@@ -8,6 +8,7 @@
   <a href="#-lab4"><img alt="lab4" src="https://img.shields.io/badge/Lab4-green"></a>
   <a href="#-lab5"><img alt="lab5" src="https://img.shields.io/badge/Lab5-blue"></a>
   <a href="#-lab6"><img alt="lab6" src="https://img.shields.io/badge/Lab6-purple"></a>
+  <a href="#-lab7"><img alt="lab7" src="https://img.shields.io/badge/Lab7-blue"></a>
 </p>
 
 
@@ -817,6 +818,65 @@ ORDER BY
 </code></pre>
 <img src="pictures/e.jpg" alt="Схема 6.5" width="550">
 </ol>
+</div>
+
+# <img src="https://github.com/user-attachments/assets/e080adec-6af7-4bd2-b232-d43cb37024ac" width="20" height="20"/> Lab7
+[Назад](#content)
+<h3 align="center">
+  <a href="#client"></a>
+</h3>
+
+<div>
+  <h3>Задание 1</h3>
+  <p>Используя базу, полученную в лабораторной 2, создать транзакцию, произвести ее откат и фиксацию. Показать, что данные существовали до отката, удалились после отката, снова были добавлены, и затем были успешно зафиксированы. При необходимости используйте точки сохранения и вложенные транзакции.</p>
+<pre><code>
+ -- 1. Начало транзакции
+BEGIN TRANSACTION;
+
+-- 2. Добавление записи (для будущего отката)
+INSERT INTO Employee (passport, full_name, phone, department_id)
+VALUES ('9999999999', 'Тестовый Сотрудник 1', '790099999', 1);
+
+-- 3. Проверяем, что запись существует
+SELECT * FROM Employee WHERE passport = '9999999999';
+
+-- 4. Откат
+ROLLBACK TRANSACTION;
+
+-- 5. Проверяем, что запись исчезла
+SELECT * FROM Employee WHERE passport = '9999999999';
+
+-- 6. Новая транзакция
+BEGIN TRANSACTION;
+
+INSERT INTO Employee (passport, full_name, phone, department_id)
+VALUES ('9999999999', 'Тестовый Сотрудник 1', '790099999', 1);
+
+-- 7. Фиксация
+COMMIT TRANSACTION;
+
+-- 8. После фиксации запись останется
+SELECT * FROM Employee WHERE passport = '9999999999';
+</code></pre>
+<img src="pictures/7.1.png" alt="Схема 7.1 добавление записи" width="600">
+<img src="pictures/7.2.png" alt="Схема 7.2 результат отката" width="600">
+<img src="pictures/7.3.png" alt="Схема 7.3 результат новой транзакции после фиксации" width="600">
+  <h3>Задание 2</h3>
+  <p>Подготовить SQL-скрипты для выполнения проверок изолированности транзакций. Ваши скрипты должны работать с одной из таблиц, созданных в лабораторной работе №2.</p>
+
+  <h4>Выполнение работы</h4>
+  <ol>
+    <li>Запустить клиента и соединиться с базой данных. Открыть второе окно для ввода текста запросов (Ctrl+N в первом окне).</li>
+    <li>Установить в обоих сеансах уровень изоляции READ UNCOMMITTED. Выполнить сценарии проверки:
+      <ul>
+        <li>потерянных изменений,</li>
+        Первое окно:
+
+  <h4>Содержание отчета</h4>
+  <ul>
+    <li>Сценарий и протокол его выполнения.</li>
+    <li>Краткие выводы о навыках, приобретенных в ходе выполнения работы.</li>
+  </ul>
 </div>
 
 
