@@ -869,14 +869,377 @@ SELECT * FROM Employee WHERE passport = '9999999999';
     <li>Запустить клиента и соединиться с базой данных. Открыть второе окно для ввода текста запросов (Ctrl+N в первом окне).</li>
     <li>Установить в обоих сеансах уровень изоляции READ UNCOMMITTED. Выполнить сценарии проверки:
       <ul>
-        <li>потерянных изменений,</li>
+        <li>грязного чтения.</li>
         Первое окно:
+<pre><code>
+--  Устанавливаем уровень изоляции
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+GO
+
+BEGIN TRANSACTION;
+
+-- Меняем номер телефона у сотрудника с id=1 на временное значение
+UPDATE Employee
+SET phone = '888888888'
+WHERE id = 1;
+
+-- Показываем "грязные" (незафиксированные) данные
+SELECT id, full_name, phone
+FROM Employee
+WHERE id = 1;
+
+-- Пауза для выполнения сессии 2
+WAITFOR DELAY '00:00:10';
+
+-- Откат изменений
+ROLLBACK TRANSACTION;
+
+-- Проверка, что данные вернулись к исходным
+SELECT id, full_name, phone
+FROM Employee
+WHERE id = 1;
+</code></pre>
+<img src="pictures/7.2.1.11.png" alt="Схема 7.2.1.11" width="600"> <br>
+Второе окно:
+<pre><code>
+-- Устанавливаем уровень изоляции
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+GO
+
+-- 2. Ждем 3 секунды, чтобы окно 1 начало транзакцию и обновило данные
+WAITFOR DELAY '00:00:03';
+
+-- читаем измененное в первом окне значение , которое вскоре будет откачено.
+SELECT id, full_name, phone
+FROM Employee
+WHERE id = 1;
+</code></pre>
+<img src="pictures/7.2.1.12.png" alt="Схема 7.2.1.12" width="600">
+  <li>Вывод: На уровне изоляции READ UNCOMMITTED допускается грязное чтение — транзакция может читать незакоммиченные изменения другой транзакции, то есть во втором окне сначала вывелось 888888888, а после отработки ROLLBACK в первом окне, во втором снова стало 790010000.</li>
+ 
+  <li>потерянных изменений,</li>
+        Первое окно:
+<pre><code>
+-- Устанавливаем уровень изоляции
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+GO
+
+BEGIN TRANSACTION;
+
+-- Читаем текущий номер телефона 
+SELECT id, full_name, phone
+FROM Employee
+WHERE id = 2;
+
+-- Ждем, чтобы окно 2 успело тоже прочитать данные и запустить свой UPDATE
+WAITFOR DELAY '00:00:05';
+
+--  меняем данные
+UPDATE Employee
+SET phone = '111111111'
+WHERE id = 2;
+
+-- Фиксируем изменения
+COMMIT TRANSACTION;
+
+-- Смотрим результат
+SELECT id, full_name, phone
+FROM Employee
+WHERE id = 2;
+</code></pre>
+<img src="pictures/7.2.1.21.png" alt="Схема 7.2.1.21" width="600"> <br>
+Второе окно:
+<pre><code>
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+GO
+--  Ждем секунду, чтобы окно 1 начало транзакцию первым
+WAITFOR DELAY '00:00:01';
+
+BEGIN TRANSACTION;
+
+-- Читаем все еще старое значение
+SELECT id, full_name, phone
+FROM Employee
+WHERE id = 2;
+
+-- Сразу пытаемся изменить данные
+UPDATE Employee
+SET phone = '222222222'
+WHERE id = 2;
+
+-- Фиксируем изменения
+COMMIT TRANSACTION;
+
+-- Смотрим результат
+SELECT id, full_name, phone
+FROM Employee
+WHERE id = 2;
+</code></pre>
+<img src="pictures/7.2.1.22.png" alt="Схема 7.2.1.22" width="600">
+<li>Установить в обоих сеансах уровень изоляции READ COMMITTED. Выполнить сценарии проверки:
+      <ul>
+        <li>грязного чтения,</li>
+        Первое окно:
+<pre><code>
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+GO
+
+BEGIN TRANSACTION;
+
+-- Изменяем телефон сотрудника
+UPDATE Employee
+SET phone = '888888888'
+WHERE id = 3; 
+
+-- Показываем измененные, но еще не зафиксированные данные
+SELECT id, full_name, phone 
+FROM Employee 
+WHERE id = 3;
+
+-- Ждем 10 секунд, чтобы Окно 2 попыталось прочитать данные
+WAITFOR DELAY '00:00:10';
+
+-- Откатываем изменения
+ROLLBACK TRANSACTION;
+
+-- Показываем финальное состояние
+SELECT id, full_name, phone 
+FROM Employee 
+WHERE id = 3;
+</code></pre>
+<img src="pictures/7.2.2.11.png" alt="Схема 7.2.2.11" width="600"> <br>
+Второе окно:
+<pre><code>
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+GO
+
+SELECT id, full_name, phone 
+FROM Employee 
+WHERE id = 3;
+
+</code></pre>  
+<img src="pictures/7.2.2.12.png" alt="Схема 7.2.2.12" width="600">
+        <li>неповторяющегося чтения.</li>
+        Первое окно:
+<pre><code>
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+GO
+
+BEGIN TRANSACTION;
+
+-- Первое чтение
+SELECT id, full_name, phone 
+FROM Employee 
+WHERE id = 4;  
+
+-- Ждем 10 секунд, чтобы Окно 2 успело изменить данные
+WAITFOR DELAY '00:00:10';
+
+-- Второе чтение ТЕХ ЖЕ данных
+SELECT id, full_name, phone 
+FROM Employee 
+WHERE id = 4;
+
+COMMIT TRANSACTION;
+
+-- После коммита показываем окончательное состояние
+SELECT id, full_name, phone 
+FROM Employee 
+WHERE id = 4;
+</code></pre> 
+<img src="pictures/7.2.2.21.png" alt="Схема 7.2.2.21" width="600"> <br>
+Второе окно:
+<pre><code>
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+GO
+
+WAITFOR DELAY '00:00:02';
+
+-- Изменяем данные, которые Окно 1 уже прочитало
+UPDATE Employee
+SET phone = '777777777'
+WHERE id = 4;
+
+-- Показываем изменения
+SELECT id, full_name, phone 
+FROM Employee 
+WHERE id = 4;
+
+</code></pre> 
+<img src="pictures/7.2.2.22.png" alt="Схема 7.2.2.22" width="600">
+      </ul>
+    </li>
+    <li>Записать протокол выполнения сценариев.</li>
+    <li>Установить в обоих сеансах уровень изоляции REPEATABLE READ. Выполнить сценарии проверки:
+      <ul>
+        <li>неповторяющегося чтения,</li>
+        Первое окно:
+<pre><code>
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+GO
+
+BEGIN TRANSACTION;
+
+-- Первое чтение данных сотрудника
+SELECT id, full_name, phone, department_id
+FROM Employee 
+WHERE id = 5;
+
+-- Ждем 10 секунд, чтобы Окно 2 попыталось изменить данные
+WAITFOR DELAY '00:00:10';
+
+-- Второе чтение ТЕХ ЖЕ данных
+SELECT id, full_name, phone, department_id
+FROM Employee 
+WHERE id = 5;
+
+COMMIT TRANSACTION;
+
+-- После коммита показываем окончательное состояние
+SELECT id, full_name, phone, department_id
+FROM Employee 
+WHERE id = 5;
+
+</code></pre>
+<img src="pictures/7.2.3.11.png" alt="Схема 7.2.3.11" width="600"> <br>
+Второе окно:
+<pre><code>
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+GO
+
+-- Ждем 2 секунды, чтобы Окно 1 успело начать транзакцию и прочитать данные
+WAITFOR DELAY '00:00:02';
+
+SELECT id, full_name, phone FROM Employee WHERE id = 5;
+
+UPDATE Employee
+SET phone = '555555555'
+WHERE id = 5;
+
+SELECT id, full_name, phone FROM Employee WHERE id = 5;
+
+</code></pre>
+<img src="pictures/7.2.3.12.png" alt="Схема 7.2.3.12" width="600">
+        <li>фантома.</li>
+        Первое окно:
+<pre><code>
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+GO
+
+BEGIN TRANSACTION;
+
+-- Первое чтение: сотрудники с зарплатой выше 40000
+SELECT 
+    p.id,
+    p.position_name,
+    p.base_salary
+FROM Position p
+WHERE p.base_salary > 40000
+ORDER BY p.base_salary DESC;
+
+-- Ждем 10 секунд, чтобы Окно 2 успело добавить новую запись
+WAITFOR DELAY '00:00:10';
+
+-- Второе чтение: тот же самый запрос
+SELECT 
+    p.id,
+    p.position_name,
+    p.base_salary
+FROM Position p
+WHERE p.base_salary > 40000
+ORDER BY p.base_salary DESC;
+
+COMMIT TRANSACTION;
+
+-- После коммита показываем все должности
+SELECT id, position_name, base_salary 
+FROM Position 
+ORDER BY base_salary DESC;
+</code></pre>
+<img src="pictures/7.2.3.21.png" alt="Схема 7.2.3.21" width="600"> <br>
+Второе окно:
+<pre><code>
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+GO
+
+-- Ждем 2 секунды, чтобы Окно 1 успело начать транзакцию
+WAITFOR DELAY '00:00:02';
+
+SELECT id, position_name, base_salary 
+FROM Position 
+WHERE base_salary > 40000
+ORDER BY base_salary DESC;
+
+-- Добавляем новую запись
+INSERT INTO Position (position_name, base_salary)
+VALUES ('Академик', 85000);
+
+SELECT id, position_name, base_salary 
+FROM Position 
+ORDER BY base_salary DESC;
+
+
+</code></pre>
+<img src="pictures/7.2.3.22.png" alt="Схема 7.2.3.22" width="600">
+      </ul>
+    </li>
+    <li>Записать протокол выполнения сценариев.</li>
+    <li>Установить в обоих сеансах уровень изоляции SERIALIZABLE. Выполнить сценарий проверки:
+      <ul>
+        <li>фантома.</li>
+        Первое окно:
+<pre><code>
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+GO
+
+BEGIN TRANSACTION;
+
+-- Первое чтение диапазона
+SELECT id, full_name, phone 
+FROM Employee 
+WHERE id BETWEEN 10 AND 15
+ORDER BY id;
+
+-- Ждем 10 секунд
+WAITFOR DELAY '00:00:10';
+
+-- Второе чтение того же диапазона
+SELECT id, full_name, phone 
+FROM Employee 
+WHERE id BETWEEN 10 AND 15
+ORDER BY id;
+
+COMMIT TRANSACTION;
+</code></pre>
+<img src="pictures/7.2.41.png" alt="Схема 7.2.41" width="600"> <br>
+Второе окно:
+<pre><code>
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+GO
+
+-- Ждем 5 секунд, чтобы Окно 1 успело начать транзакцию
+WAITFOR DELAY '00:00:05';
+
+BEGIN TRANSACTION;
+
+-- Пытаемся вставить запись с ID в диапазоне 10-15
+-- Но у нас ID автоинкрементный, поэтому просто вставляем
+INSERT INTO Employee (passport, full_name, phone, department_id)
+VALUES ('7777777777', 'Тестовый Фантом', '7999999999', 1);
+
+COMMIT;
+</code></pre>
+<img src="pictures/7.2.42.png" alt="Схема 7.2.42" width="600">
+      </ul>
+    </li>
+    <li>Записать протокол выполнения сценария.</li>
+  </ol>
 
   <h4>Содержание отчета</h4>
   <ul>
     <li>Сценарий и протокол его выполнения.</li>
     <li>Краткие выводы о навыках, приобретенных в ходе выполнения работы.</li>
+
+В ходе выполнения лабораторной работы были приобретены практические навыки работы с транзакциями в базах данных, включая создание, фиксацию и откат изменений. Получен опыт настройки различных уровней изоляции транзакций (READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, SERIALIZABLE). На практике изучены сценарии возникновения потерянных изменений, грязного чтения, неповторяющегося чтения и фантомов.
   </ul>
 </div>
-
-
