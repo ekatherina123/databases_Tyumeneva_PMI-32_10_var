@@ -8,7 +8,7 @@
   <a href="#-lab4"><img alt="lab4" src="https://img.shields.io/badge/Lab4-green"></a>
   <a href="#-lab5"><img alt="lab5" src="https://img.shields.io/badge/Lab5-blue"></a>
   <a href="#-lab6"><img alt="lab6" src="https://img.shields.io/badge/Lab6-purple"></a>
-  <a href="#-lab7"><img alt="lab7" src="https://img.shields.io/badge/Lab7-blue"></a>
+  <a href="#-lab7"><img alt="lab7" src="https://img.shields.io/badge/Lab7-2D004D"></a>
 </p>
 
 
