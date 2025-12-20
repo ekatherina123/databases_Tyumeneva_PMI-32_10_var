@@ -830,35 +830,89 @@ ORDER BY
   <h3>Задание 1</h3>
   <p>Используя базу, полученную в лабораторной 2, создать транзакцию, произвести ее откат и фиксацию. Показать, что данные существовали до отката, удалились после отката, снова были добавлены, и затем были успешно зафиксированы. При необходимости используйте точки сохранения и вложенные транзакции.</p>
 <pre><code>
+-- 1. Просмотр исходных данных сотрудника
+SELECT 
+    e.id,
+    e.full_name,
+    d.name AS department_name,
+    f.name AS faculty_name
+FROM Employee e
+JOIN Department d ON e.department_id = d.Id
+JOIN Faculty f ON d.faculty_id = f.ID
+WHERE e.id = 1;
+
+
+-- 2. Начало транзакции
 BEGIN TRANSACTION;
 
--- запись для будущего отката
-INSERT INTO Employee (passport, full_name, phone, department_id)
-VALUES ('9999999999', 'Тестовый Сотрудник 1', '790099999', 1);
 
--- Проверяем, что запись существует
-SELECT * FROM Employee WHERE passport = '9999999999';
+-- 3. Объявляем переменные
+DECLARE @OldFaculty INT;
+DECLARE @NewFaculty INT;
+DECLARE @NewDepartment INT = 8; -- кафедра, на которую переводим сотрудника
 
---  Откат
-ROLLBACK TRANSACTION;
 
--- Проверяем, что запись исчезла
-SELECT * FROM Employee WHERE passport = '9999999999';
+-- 4. Получаем факультет текущей кафедры сотрудника
+SELECT @OldFaculty = d.faculty_id
+FROM Employee e
+JOIN Department d ON e.department_id = d.Id
+WHERE e.id = 1;
 
--- Новая транзакция
-BEGIN TRANSACTION;
 
-INSERT INTO Employee (passport, full_name, phone, department_id)
-VALUES ('9999999999', 'Тестовый Сотрудник 1', '790099999', 1);
+-- 5. Получаем факультет новой кафедры
+SELECT @NewFaculty = faculty_id
+FROM Department
+WHERE Id = @NewDepartment;
 
--- Фиксация
-COMMIT TRANSACTION;
 
--- После фиксации запись останется
-SELECT * FROM Employee WHERE passport = '9999999999';
+-- 6. Создаем точку сохранения
+SAVE TRANSACTION TransferPoint;
+
+
+-- 7. Переводим сотрудника на другую кафедру
+UPDATE Employee
+SET department_id = @NewDepartment
+WHERE id = 1;
+
+
+-- 8. Проверяем данные внутри транзакции
+SELECT 
+    e.id,
+    e.full_name,
+    d.name AS department_name,
+    f.name AS faculty_name
+FROM Employee e
+JOIN Department d ON e.department_id = d.Id
+JOIN Faculty f ON d.faculty_id = f.ID
+WHERE e.id = 1;
+
+
+-- 9. Проверка факультета и откат / фиксация
+IF @OldFaculty <> @NewFaculty
+BEGIN
+    PRINT 'Кафедра относится к другому факультету. Выполняется откат.';
+    ROLLBACK TRANSACTION TransferPoint;
+END
+ELSE
+BEGIN
+    PRINT 'Кафедра относится к тому же факультету. Фиксация транзакции.';
+    COMMIT TRANSACTION;
+END
+
+
+-- 10. Итоговая проверка после отката или фиксации
+SELECT 
+    e.id,
+    e.full_name,
+    d.name AS department_name,
+    f.name AS faculty_name
+FROM Employee e
+JOIN Department d ON e.department_id = d.Id
+JOIN Faculty f ON d.faculty_id = f.ID
+WHERE e.id = 1;
 </code></pre>
-<img src="pictures/7.1.png" alt="Схема 7.1 добавление записи" width="600">
-<img src="pictures/7.2.png" alt="Схема 7.2 результат отката" width="600">
+<img src="pictures/фиксация.png" alt="Успешный перевод на кафедру того же факультета с фиксацией" width="600">
+<img src="pictures/откат.png" alt="Неудачный перевод на кафедру другого факультета, откат" width="600">
 <img src="pictures/7.3.png" alt="Схема 7.3 результат новой транзакции после фиксации" width="600">
   <h3>Задание 2</h3>
   <p>Подготовить SQL-скрипты для выполнения проверок изолированности транзакций. Ваши скрипты должны работать с одной из таблиц, созданных в лабораторной работе №2.</p>
