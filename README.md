@@ -1528,22 +1528,187 @@ db.restaurants.updateOne(
   <ol>
     <li>Какова разница между максимальной и минимальной температурой в течение года?</li>
 <pre><code>
-db.weather.aggregate([
+db.forecasts.aggregate([
+  {
+    $group: {
+      _id: { year: "$year", month: "$month", day: "$day" },
+      avgTemp: { $avg: "$temperature" }
+    }
+  },
+  {
+    $sort: { avgTemp: 1 }
+  },
+  {
+    $skip: 10
+  },
+  {
+    $sort: { avgTemp: -1 }
+  },
+  {
+    $skip: 10
+  },
   {
     $group: {
       _id: null,
-      maxTemp: { $max: "$temperature" },
-      minTemp: { $min: "$temperature" }
+      avgTemperature: { $avg: "$avgTemp" }
     }
   },
   {
     $project: {
       _id: 0,
-      temperatureDifference: { $subtract: ["$maxTemp", "$minTemp"] }
+      avgTemperature: 1
     }
   }
 ])
 </code></pre>
+<img src="pictures/8.2.2.png" alt="Схема 8.2.2" width="450"> <br>
+    <li>Найти первые 10 записей с самой низкой погодой, когда дул ветер с юга и посчитайте среднюю температуры для этих записей</li>
+<pre><code>
+db.forecasts.aggregate([
+  {
+    $match: { wind_direction: "Южный" }
+  },
+  {
+    $sort: { temperature: 1 }
+  },
+  {
+    $limit: 10
+  },
+  {
+    $group: {
+      _id: null,
+      avgTemperature: { $avg: "$temperature" },
+      records: { $push: "$$ROOT" }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      avgTemperature: 1,
+      records: 1
+    }
+  }
+])
+</code></pre>
+<img src="pictures/8.2.3.1.png" alt="Схема 8.2.3.1" width="260">
+<img src="pictures/8.2.3.2.png" alt="Схема 8.2.3.2" width="260">
+ <img src="pictures/8.2.3.3.png" alt="Схема 8.2.3.3" width="260">
+    <li>Подсчитайте количество дней, когда шел снег. (Будем считать снегом осадки, которые выпали, когда температура была ниже нуля)</li>
+<pre><code>
+db.forecasts.aggregate([
+  {
+    $match: { temperature: { $lt: 0 } }
+  },
+  {
+    $group: {
+      _id: { year: "$year", month: "$month", day: "$day" }
+    }
+  },
+  {
+    $count: "snowyDays"
+  }
+])
+</code></pre>
+<img src="pictures/8.2.4.png" alt="Схема 8.2.4" width="450"> <br>
+    <li>В течение зимы иногда шел снег, а иногда дождь. Насколько больше (или меньше) выпало осадков в виде снега.</li>
+<pre><code>
+db.forecasts.aggregate([
+  {
+    $match: {
+      month: { $in: [12, 1, 2] },
+      code: { $in: ["SN", "RA"] }
+    }
+  },
+  {
+    $group: {
+      _id: null,
+      snowDays: {
+        $sum: { $cond: [{ $eq: ["$code", "SN"] }, 1, 0] }
+      },
+      rainDays: {
+        $sum: { $cond: [{ $eq: ["$code", "RA"] }, 1, 0] }
+      }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      snowDays: 1,
+      rainDays: 1,
+      difference: { $subtract: ["$snowDays", "$rainDays"] }
+    }
+  }
+])
+</code></pre>
+<img src="pictures/8.2.5.png" alt="Схема 8.2.5" width="450"> <br>
+    <li>Какова вероятность того что в ясный день выпадут осадки? (Предположим, что день считается ясным, если ясная погода фиксируется более чем в 75% случаев)</li>
+<pre><code>
+db.forecasts.aggregate([
+  {
+    $group: {
+      _id: { year: "$year", month: "$month", day: "$day" },
+      total: { $sum: 1 },
+      clear_count: { $sum: { $cond: [{ $eq: ["$code", "CL"] }, 1, 0] } },
+      precipitation_count: { $sum: { $cond: [{ $ne: ["$code", "CL"] }, 1, 0] } }
+    }
+  },
+  {
+    $project: {
+      _id: 1,
+      total: 1,
+      clear_count: 1,
+      precipitation_count: 1,
+      clear_ratio: { $divide: ["$clear_count", "$total"] },
+      has_precipitation: { $gt: ["$precipitation_count", 0] }
+    }
+  },
+  {
+    $match: {
+      clear_ratio: { $gt: 0.75 }
+    }
+  },
+  {
+    $group: {
+      _id: null,
+      clear_days: { $sum: 1 },
+      clear_days_with_precipitation: { $sum: { $cond: ["$has_precipitation", 1, 0] } }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      probability: { $divide: ["$clear_days_with_precipitation", "$clear_days"] }
+    }
+  }
+])
+</code></pre>
+<img src="pictures/8.2.6.png" alt="Схема 8.2.6" width="450"> <br>
+    <li>Увеличьте температуру на один градус при каждом измерении в нечетный день во время зимы. На сколько градусов изменилась средняя температура?</li>
+<pre><code>
+var avg_before = db.forecasts.aggregate([
+  { $match: { month: { $in: [12, 1, 2] } } }, 
+  { $group: { _id: null, avgTemp: { $avg: "$temperature" } } }
+]).toArray()[0].avgTemp;
 
+db.weather.updateMany(
+  {
+    month: { $in: [12, 1, 2] },
+    day: { $mod: [2, 1] } 
+  },
+  { $inc: { temperature: 1 } }
+);
+
+var avg_after = db.forecasts.aggregate([
+  { $match: { month: { $in: [12, 1, 2] } } },
+  { $group: { _id: null, avgTemp: { $avg: "$temperature" } } }
+]).toArray()[0].avgTemp;
+
+print("Средняя температура до обновления:", avg_before);
+print("Средняя температура после обновления:", avg_after);
+print("Изменение средней температуры:", avg_after - avg_before);
+</code></pre>
+<img src="pictures/8.2.7.png" alt="Схема 8.2.7" width="450"> <br>
+  </ol>
+</div>
 
 
