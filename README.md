@@ -1340,7 +1340,210 @@ db.restaurants.find(
     }
 )
 </code></pre>
-<img src="pictures/8.1.1.png" alt="Схема 8.1.1" width="260"> 
-<img src="pictures/8.1.2.png" alt="Схема 8.1.2" width="260"> 
-<img src="pictures/8.1.3.png" alt="Схема 8.1.3" width="260"> 
+<img src="pictures/8.1.1.png" alt="Схема 8.1.1" width="260" height="580"> 
+<img src="pictures/8.1.2.png" alt="Схема 8.1.2" width="260" height="600"> 
+<img src="pictures/8.1.3.png" alt="Схема 8.1.3" width="260" height="620"> 
+
+   <li>Выведите первые 5 ресторанов в алфавитном порядке, которые находятся в районе Bronx.</li>
+<pre><code>
+db.restaurants.find(
+  { borough: "Bronx" },
+  { _id: 0, name: 1, borough: 1, cuisine: 1, restaurant_id: 1 }
+).sort({ name: 1 }).limit(5)
+</code></pre>
+<img src="pictures/8.1.2ч.png" alt="Схема 8.1.2" width="450"> <br>
+    <li>Найдите рестораны, которые набрали более 80, но менее 100 баллов.</li>
+<pre><code>
+db.restaurants.find(
+  { 
+    grades: { $elemMatch: { score: { $gt: 80, $lt: 100 } } } 
+  },
+  { 
+    _id: 0, 
+    name: 1, 
+    borough: 1, 
+    cuisine: 1, 
+    restaurant_id: 1, 
+    grades: 1 
+  }
+)
+</code></pre>
+<img src="pictures/8.1.3ч.png" alt="Схема 8.1.3" width="450"> <br>
+    <li>Найдите рестораны, которые не относятся к типу кухни American, получили оценку «А», не расположены в районе Brooklyn. Документ должен отображаться в соответствии с кухней в порядке убывания. (на скриншотах не всё, список очень большой )</li>
+<pre><code>
+db.restaurants.find(
+  {
+    cuisine: { $ne: "American" },
+    borough: { $ne: "Brooklyn" },
+    grades: { $elemMatch: { grade: "A" } }
+  },
+  { _id: 0, name: 1, borough: 1, cuisine: 1, restaurant_id: 1, grades: 1 }
+).sort({ cuisine: -1 })
+</code></pre>
+<img src="pictures/8.1.41.png" alt="Схема 8.1.4.1" width="260">
+<img src="pictures/8.1.42.png" alt="Схема 8.1.4.2" width="260">
+<img src="pictures/8.1.43.png" alt="Схема 8.1.4.3" width="260">
+    <li>Найдите идентификатор ресторана, название, район и кухню для тех ресторанов, чье название начинается с первых трех букв назвали «Wil»</li>
+<pre><code>
+db.restaurants.find(
+  { name: { $regex: /^Wil/ } },
+  { _id: 0, restaurant_id: 1, name: 1, borough: 1, cuisine: 1 }
+)
+</code></pre>
+<img src="pictures/8.1.5.png" alt="Схема 8.1.5" width="450"> <br>
+    <li>Найдите рестораны, которые относятся к району Bronx и готовят American или Chinese блюда.</li>
+<pre><code>
+db.restaurants.find(
+  {
+    borough: "Bronx",
+    $or: [
+      { cuisine: "American" },
+      { cuisine: "Chinese" }
+    ]
+  },
+  { _id: 0, name: 1, borough: 1, cuisine: 1, restaurant_id: 1 }
+)
+</code></pre>
+<img src="pictures/8.1.61.png" alt="Схема 8.1.6.1" width="380">
+<img src="pictures/8.1.62.png" alt="Схема 8.1.6.2" width="380">
+    <li>Найдите идентификатор ресторана, название и оценки для тех ресторанов, которые «2014-08-11T00: 00: 00Z» набрали 9 баллов за оценку А</li>
+<pre><code>
+db.restaurants.find(
+  {
+    grades: {
+      $elemMatch: {
+        "date.$date": 1407715200000,
+        grade: "A",
+        score: 9
+      }
+    }
+  },
+  {
+    _id: 0,
+    restaurant_id: 1,
+    name: 1,
+    grades: 1
+  }
+)
+</code></pre>
+<img src="pictures/8.1.7.png" alt="Схема 8.1.7" width="450"> <br>
+    <li>В каждом районе посчитайте количество ресторанов по каждому виду кухни. Документ должен иметь формат borough, cuisine, count</li>
+<pre><code>
+db.restaurants.aggregate([
+  {
+    $group: {
+      _id: { borough: "$borough", cuisine: "$cuisine" },
+      count: { $sum: 1 }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      borough: "$_id.borough",
+      cuisine: "$_id.cuisine",
+      count: 1
+    }
+  }
+])
+</code></pre>
+<img src="pictures/8.1.8.png" alt="Схема 8.1.8" width="450"> <br>
+    <li>В районе Bronx найдите ресторан с минимальной суммой набранных баллов.</li>
+<pre><code>
+db.restaurants.aggregate([
+  { $match: { borough: "Bronx" } },
+  { $addFields: { totalScore: { $sum: "$grades.score" } } },
+  { $sort: { totalScore: 1 } },
+  { $limit: 1 },
+  { $project: { _id: 0, name: 1, borough: 1, totalScore: 1, cuisine: 1 } }
+])
+</code></pre>
+<img src="pictures/8.1.9.png" alt="Схема 8.1.9" width="450"> <br>
+    <li>Добавьте в коллекцию свой любимый ресторан.</li>
+<pre><code>
+db.restaurants.insertOne({
+  address: {
+    building: "11",
+    street: "Первомайский бульвар",
+    zipcode: 150000
+  },
+  borough: "Ярославль",
+  cuisine: "Грузинская кухня",
+  grades: [
+    { 
+      date: "2025-12-23T16:55:00Z", 
+      grade: "A", 
+      score: 5 
+    }
+  ],
+  name: "Мамука",
+  restaurant_id: "666228777"
+});
+</code></pre>
+<img src="pictures/8.1.10.png" alt="Схема 8.1.10" width="450"> <br>
+    <li>В добавленном ресторане укажите информацию о времени его работы.</li>
+<pre><code>
+db.restaurants.updateOne(
+  {
+    restaurant_id: "666228777"
+  },
+  {
+    $set: {
+      "opening_hours": {
+        "monday": "12:00-23:00",
+        "tuesday": "12:00-23:00",
+        "wednesday": "12:00-23:00",
+        "thursday": "12:00-23:00",
+        "friday": "12:00-00:00",
+        "saturday": "12:00-00:00",
+        "sunday": "12:00-22:00"
+      }
+    }
+  }
+)
+</code></pre>
+<img src="pictures/8.1.11.png" alt="Схема 8.1.11" width="450"> <br>
+    <li>Измените время работы вашего любимого ресторана.</li>
+<pre><code>
+db.restaurants.updateOne(
+  { restaurant_id: "666228777" },
+  {
+    $set: {
+      "opening_hours.monday": "12:00-00:00",
+      "opening_hours.tuesday": "12:00-00:00",
+      "opening_hours.wednesday": "12:00-00:00",
+      "opening_hours.thursday": "12:00-00:00",
+      "opening_hours.friday": "12:00-00:00",
+      "opening_hours.saturday": "12:00-00:00",
+      "opening_hours.sunday": "12:00-00:00"
+    }
+  }
+)
+</code></pre>
+<img src="pictures/8.1.12.png" alt="Схема 8.1.12" width="450"> <br>
+  </ol>
+
+  <h4>Задание 2</h4>
+
+  <p>Выполните запросы с использованием Aggregate:</p>
+  <ol>
+    <li>Какова разница между максимальной и минимальной температурой в течение года?</li>
+<pre><code>
+db.weather.aggregate([
+  {
+    $group: {
+      _id: null,
+      maxTemp: { $max: "$temperature" },
+      minTemp: { $min: "$temperature" }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      temperatureDifference: { $subtract: ["$maxTemp", "$minTemp"] }
+    }
+  }
+])
+</code></pre>
+
+
 
