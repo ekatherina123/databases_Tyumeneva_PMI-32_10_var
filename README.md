@@ -9,6 +9,7 @@
   <a href="#-lab5"><img alt="lab5" src="https://img.shields.io/badge/Lab5-blue"></a>
   <a href="#-lab6"><img alt="lab6" src="https://img.shields.io/badge/Lab6-purple"></a>
   <a href="#-lab7"><img alt="lab7" src="https://img.shields.io/badge/Lab7-2D004D"></a>
+	<a href="#-lab8"><img alt="lab8" src="https://img.shields.io/badge/Lab8-white"></a>
 </p>
 
 
@@ -1314,3 +1315,32 @@ COMMIT;
 В ходе выполнения лабораторной работы были приобретены практические навыки работы с транзакциями в базах данных, включая создание, фиксацию и откат изменений. Получен опыт настройки различных уровней изоляции транзакций (READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, SERIALIZABLE). На практике изучены сценарии возникновения потерянных изменений, грязного чтения, неповторяющегося чтения и фантомов.
   </ul>
 </div>
+
+# <img src="https://github.com/user-attachments/assets/e080adec-6af7-4bd2-b232-d43cb37024ac" width="20" height="20"/> Lab8
+[Назад](#content)
+<h3 align="center">
+  <a href="#client"></a>
+</h3>
+
+<div>
+  <h4>Задание 1</h4>
+
+  <p>Выполните запросы :</p>
+  <ol>
+    <li>Выведите все документы коллекции Ресторан в формате: restaurant_id, name, borough и cuisine, вывод _id для всех документов исключить.</li>
+<pre><code>
+db.restaurants.find(
+    {},
+    {
+        _id: 0,
+        restaurant_id: 1,
+        name: 1,
+        borough: 1,
+        cuisine: 1
+    }
+)
+</code></pre>
+<img src="pictures/8.1.1.png" alt="Схема 8.1.1" width="260"> 
+<img src="pictures/8.1.2.png" alt="Схема 8.1.2" width="260"> 
+<img src="pictures/8.1.3.png" alt="Схема 8.1.3" width="260"> 
+
